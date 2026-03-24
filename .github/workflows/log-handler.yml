@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Segurança de Logs
+      - name: Explicit Secret Masking
         run: |
           echo "::add-mask::${{ github.event.client_payload.message }}"
 
