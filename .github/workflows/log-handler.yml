@@ -7,7 +7,6 @@ on:
 jobs:
   update-monitor:
     runs-on: ubuntu-latest
-    # ESSENCIAL: Garante permissão para o bot fazer o push no repo
     permissions:
       contents: write
       
@@ -15,24 +14,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # Usa o token com as permissões definidas acima
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Segurança de Logs
+        run: |
+          echo "::add-mask::${{ github.event.client_payload.message }}"
+
       - name: Write Execution Log
+        env:
+          LOG_MESSAGE: ${{ github.event.client_payload.message }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          MESSAGE="${{ github.event.client_payload.message }}"
           TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
           
-          # Garante que o arquivo existe antes de adicionar a linha
           touch daily_uptime.log
-          echo "[$TIMESTAMP] [SUCCESS] $MESSAGE" >> daily_uptime.log
+          echo "[$TIMESTAMP] [SUCCESS] $LOG_MESSAGE" >> daily_uptime.log
           
           git add daily_uptime.log
           
-          # Só faz o commit se houver mudanças reais para evitar erros de 'nothing to commit'
           git diff --quiet && git diff --staged --quiet || ( \
             git commit -m "infra: operations pulse check $TIMESTAMP" \
                        -m "Co-authored-by: pklavc <patrickajm@gmail.com>" && \
